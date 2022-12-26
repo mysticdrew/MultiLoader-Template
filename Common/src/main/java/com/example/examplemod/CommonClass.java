@@ -1,7 +1,13 @@
 package com.example.examplemod;
 
+import com.example.examplemod.networking.data.NetworkHandler;
+import com.example.examplemod.networking.packets.ExamplePacketOne;
+import com.example.examplemod.networking.packets.ExamplePacketTwo;
 import com.example.examplemod.platform.Services;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Items;
 
 // This class is part of the common project meaning it is shared between all supported loaders. Code written here can only
@@ -13,7 +19,7 @@ public class CommonClass {
     // The loader specific projects are able to import and use any code from the common project. This allows you to
     // write the majority of your code here and load it from your loader specific projects. This example has some
     // code that gets invoked by the entry point of the loader specific projects.
-    public static void init() {
+    public static void init(NetworkHandler handler) {
 
         Constants.LOG.info("Hello from Common init on {}! we are currently in a {} environment!", Services.PLATFORM.getPlatformName(), Services.PLATFORM.getEnvironmentName());
         Constants.LOG.info("The ID for diamonds is {}", BuiltInRegistries.ITEM.getKey(Items.DIAMOND));
@@ -26,6 +32,15 @@ public class CommonClass {
         if (Services.PLATFORM.isModLoaded("examplemod")) {
 
             Constants.LOG.info("Hello to examplemod");
+        }
+
+        // Example packet sending
+        if(Minecraft.getInstance().level.isClientSide()) {
+            handler.sendToServer(new ExamplePacketOne());
+        } else {
+            for (ServerPlayer player : Minecraft.getInstance().level.getServer().getPlayerList().getPlayers()) {
+                handler.sendToClient(new ExamplePacketTwo(), player);
+            }
         }
     }
 }
